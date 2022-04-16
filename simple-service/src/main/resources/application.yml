@@ -1,0 +1,12 @@
+eureka:
+  instance:
+    instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${server.port}:${random.uuid}
+management:
+  endpoints:
+    web:
+      base-path: /
+      exposure:
+        include: '*'
+spring:
+  application:
+    name: Simple Service

@@ -1,2 +1,4 @@
 my:
   prop: Hello Simple service PRODUCTION Environment Updated!!!
+server:
+  port: 8080

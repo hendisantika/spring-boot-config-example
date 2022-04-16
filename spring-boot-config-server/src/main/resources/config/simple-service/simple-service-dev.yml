@@ -1,2 +1,4 @@
 my:
   prop: Hello Simple Service DEVELOPMENT Environment!!!
+server:
+  port: 8080
