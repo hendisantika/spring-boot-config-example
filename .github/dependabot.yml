@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: "/eureka-server"
+    schedule:
+      interval: daily
+      time: '21:00'
+      timezone: Asia/Jakarta
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: maven
+    directory: "/simple-service"
+    schedule:
+      interval: daily
+      time: '21:00'
+      timezone: Asia/Jakarta
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: maven
+    directory: "/spring-boot-config-server"
+    schedule:
+      interval: daily
+      time: '21:00'
+      timezone: Asia/Jakarta
+    open-pull-requests-limit: 10
