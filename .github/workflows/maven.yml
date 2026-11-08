@@ -1,10 +1,5 @@
-# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# Build every Maven module with JDK 25 and submit its dependency graph to GitHub.
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
 
 name: Java CI with Maven
 
@@ -13,30 +8,71 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
-
+    name: Build ${{ matrix.module }}
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [ eureka-server, simple-service, spring-boot-config-server ]
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.module }}
+
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 25
-      uses: actions/setup-java@v4
-      with:
-        java-version: '25'
-        distribution: 'temurin'
-        cache: maven
-        
-    - name: Build with Maven
-      run: mvn -B package --file eureka-server/pom.xml
+      - uses: actions/checkout@v7
 
-    - name: Build with Maven
-      run: mvn -B package --file simple-service/pom.xml 
+      - name: Set up JDK 25
+        uses: actions/setup-java@v6
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: maven
+          cache-dependency-path: ${{ matrix.module }}/pom.xml
 
-    - name: Build with Maven
-      run: mvn -B package --file spring-boot-config-server/pom.xml 
+      - name: Build with Maven
+        run: ./mvnw -B verify
 
-    # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
-    - name: Update dependency graph
-      uses: advanced-security/maven-dependency-submission-action@571e99aab1055c2e71a1e2309b9691de18d6b7d6
+  dependency-graph:
+    name: Dependency graph ${{ matrix.module }}
+    # Submitting the graph needs a write token, which is not available on pull requests (e.g. from Dependabot)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [ eureka-server, simple-service, spring-boot-config-server ]
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v6
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: maven
+          cache-dependency-path: ${{ matrix.module }}/pom.xml
+
+      # Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts
+      - name: Update dependency graph
+        uses: advanced-security/maven-dependency-submission-action@v6
+        with:
+          directory: ${{ matrix.module }}
+          correlator: ${{ github.job }}-${{ matrix.module }}
