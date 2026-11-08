@@ -1,25 +1,48 @@
 version: 2
 updates:
+  # Maven dependencies for every module
   - package-ecosystem: maven
-    directory: "/eureka-server"
+    directories:
+      - "/eureka-server"
+      - "/simple-service"
+      - "/spring-boot-config-server"
     schedule:
       interval: daily
-      time: '21:00'
+      time: "21:00"
       timezone: Asia/Jakarta
     open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "java"
+    commit-message:
+      prefix: "chore(deps)"
+      include: scope
+    groups:
+      # Spring Boot parent & Spring Cloud BOM move together across all modules
+      spring:
+        patterns:
+          - "org.springframework.boot:*"
+          - "org.springframework.cloud:*"
+      maven-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
 
-  - package-ecosystem: maven
-    directory: "/simple-service"
+  # GitHub Actions used by the workflows
+  - package-ecosystem: github-actions
+    directory: "/"
     schedule:
-      interval: daily
-      time: '21:00'
+      interval: weekly
+      day: monday
+      time: "21:00"
       timezone: Asia/Jakarta
-    open-pull-requests-limit: 10
-
-  - package-ecosystem: maven
-    directory: "/spring-boot-config-server"
-    schedule:
-      interval: daily
-      time: '21:00'
-      timezone: Asia/Jakarta
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci(deps)"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
