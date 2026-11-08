@@ -76,3 +76,5 @@ jobs:
         with:
           directory: ${{ matrix.module }}
           correlator: ${{ github.job }}-${{ matrix.module }}
+          # The action resolves the wrapper relative to `directory` twice, so use the runner's Maven instead
+          ignore-maven-wrapper: true
